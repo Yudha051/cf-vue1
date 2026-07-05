@@ -2122,16 +2122,21 @@ app.get("/api", (c) => {
   return c.text("hello");
 });
 app.get("/api/users", async (c) => {
-  let { results } = await c.env.DB.prepare("SELECT * FROM users").all();
+  const { results } = await c.env.DB.prepare(
+    "SELECT * FROM users"
+  ).all();
   return c.json(results);
 });
 app.get("*", async (c) => {
   const req = c.req.raw;
-  const assetResponse = await c.env.ASSETS.fetch(req);
-  if (assetResponse.status !== 404) return assetResponse;
+  const asset = await c.env.ASSETS.fetch(req);
+  if (asset.status !== 404) {
+    return asset;
+  }
   const url = new URL(req.url);
-  const indexRequest = new Request(`${url.origin}/index.html`, req);
-  return c.env.ASSETS.fetch(indexRequest);
+  return c.env.ASSETS.fetch(
+    new Request(`${url.origin}/index.html`, req)
+  );
 });
 var api_default = app;
 
