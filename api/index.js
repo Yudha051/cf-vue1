@@ -24,4 +24,14 @@ app.get('*', async (c) => {
   return c.env.ASSETS.fetch(indexRequest);
 });
 
+export default {
+  async fetch(request, env) {
+    const { results } = await env.DB.prepare(
+      "SELECT * FROM users"
+    ).all();
+
+    return Response.json(results);
+  }
+}
+
 export default app;
