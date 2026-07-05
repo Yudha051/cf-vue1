@@ -1,27 +1,32 @@
-import { Hono } from 'hono';
+import { Hono } from "hono";
 
 const app = new Hono();
 
-app.get('/api', (c) => {
-  return c.text('hello');
-})
+app.get("/api", (c) => {
+  return c.text("hello");
+});
 
-app.get('/api/users', async (c) => {
-  let { results } = await c.env.DB.prepare("SELECT * FROM users").all()
-  return c.json(results)
-})
+app.get("/api/users", async (c) => {
+  const { results } = await c.env.DB.prepare(
+    "SELECT * FROM users"
+  ).all();
 
-// SPA fallback: try to serve the requested asset, and if it 404s return index.html
-app.get('*', async (c) => {
+  return c.json(results);
+});
+
+// SPA fallback
+app.get("*", async (c) => {
   const req = c.req.raw;
-  // Try to fetch the exact asset first
-  const assetResponse = await c.env.ASSETS.fetch(req);
-  if (assetResponse.status !== 404) return assetResponse;
+  const asset = await c.env.ASSETS.fetch(req);
 
-  // If asset not found, return index.html so the client-side router can handle the route
+  if (asset.status !== 404) {
+    return asset;
+  }
+
   const url = new URL(req.url);
-  const indexRequest = new Request(`${url.origin}/index.html`, req);
-  return c.env.ASSETS.fetch(indexRequest);
+  return c.env.ASSETS.fetch(
+    new Request(`${url.origin}/index.html`, req)
+  );
 });
 
 export default app;
